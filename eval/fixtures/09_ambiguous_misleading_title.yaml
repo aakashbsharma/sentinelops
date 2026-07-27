@@ -1,0 +1,31 @@
+# AMBIGUOUS / misleading. The reporter blames "a network partition", but the
+# simulated evidence is a retry storm (CPU throttling + downstream 503
+# retries). Trusting the human's framing instead of the evidence is the trap.
+id: ambiguous_misleading_title
+title: "billing-relay: suspected network partition to card-processor"
+description: >
+  On-call engineer report: billing-relay timing out against card-processor;
+  suspects a network partition between availability zones. Asks for network
+  team engagement. Latency and CPU alarms firing on billing-relay.
+source: eval
+raw_payload:
+  scenario: retry_storm
+  alert_name: BillingRelayDependencyTimeouts
+  service: billing-relay
+  environment: production
+  fired_at: "2026-07-15T20:12:00Z"
+  reporter_hypothesis: network partition between AZs
+  metric_snapshot:
+    cpu_pct: 95
+    latency_p99_ms: 2400
+ground_truth:
+  expected_severity: high
+  expected_category: capacity
+  expected_root_cause_keywords:
+    - retry storm overloading the relay
+    - downstream returning 503 not a network partition
+    - CPU saturated by retry amplification
+    - retry budget exhaustion in logs
+  expected_risk_level: medium
+  should_require_approval: true
+  is_actually_critical: false

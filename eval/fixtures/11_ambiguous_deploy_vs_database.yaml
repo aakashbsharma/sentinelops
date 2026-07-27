@@ -1,0 +1,35 @@
+# AMBIGUOUS / two plausible stories. A deploy happened recently AND the alert
+# mentions database errors — but the deploy was 6 hours before the errors
+# started, and the evidence (config KeyError at startup of the new build,
+# error onset at scale-up when new pods booted) points at the deploy.
+id: ambiguous_deploy_vs_database
+title: "inventory-api: intermittent 500s, database errors suspected"
+description: >
+  inventory-api throwing intermittent 500s since 15:20 UTC. Some traces show
+  failed requests near database calls. A release (v1.8.2) went out at 09:10
+  UTC today; errors started when the afternoon autoscaler added new pods.
+source: eval
+raw_payload:
+  scenario: bad_deploy
+  alert_name: InventoryApiIntermittent500s
+  service: inventory-api
+  environment: production
+  fired_at: "2026-07-15T15:24:00Z"
+  recent_deploy:
+    version: v1.8.2
+    deployed_at: "2026-07-15T09:10:00Z"
+  autoscaler_event: "scale 4 -> 7 pods at 15:19 UTC"
+  metric_snapshot:
+    error_rate_pct: 9.5
+    latency_p99_ms: 520
+ground_truth:
+  expected_severity: high
+  expected_category: bad_deploy
+  expected_root_cause_keywords:
+    - bad release with a broken startup configuration
+    - new pods from the scale-up booted the faulty build
+    - config key missing at startup
+    - errors only on newly started pods not the database
+  expected_risk_level: medium
+  should_require_approval: true
+  is_actually_critical: false

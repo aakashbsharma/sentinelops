@@ -1,0 +1,59 @@
+# --- Core web framework ---
+# NOTE: bumped from 0.115.6 for Stage 6 — the mcp SDK on Python 3.14 requires
+# starlette>=0.48, which fastapi 0.115.x caps below. Same FastAPI API surface.
+fastapi>=0.139.0
+uvicorn[standard]>=0.32.0
+
+# --- MCP (Stage 6: tool servers + client adapter) ---
+# NOTE: spec asked for mcp==1.1.2, but that release predates the streamable
+# HTTP transport entirely (stdio/SSE only — streamable HTTP landed in 1.8.0)
+# and its unbounded starlette dependency conflicts with FastAPI. 1.28.x has
+# the same FastMCP @mcp.tool() decorator API plus the required transport.
+mcp>=1.28,<2
+
+# --- Database ---
+# NOTE: spec asked for 2.0.36, but that release predates Python 3.14 support
+# (typing.Union crash at import time). 2.0.51 is the same 2.0 API.
+sqlalchemy[asyncio]==2.0.51
+asyncpg>=0.30.0
+alembic>=1.14.0
+
+# --- Validation / settings ---
+pydantic>=2.10,<3
+pydantic-settings>=2.6.0
+
+# --- Task queue ---
+celery>=5.4.0
+redis>=5.2.0
+
+# --- HTTP client ---
+httpx>=0.28.0
+
+# --- LLM ---
+anthropic>=0.40.0
+tenacity>=8.5.0
+
+# --- Memory / embeddings ---
+pgvector>=0.3.0
+# Local embeddings (all-MiniLM-L6-v2): no API cost, so the Stage 8 eval
+# harness can replay incidents freely. See app/memory/embeddings.py for the
+# hosted-API tradeoff discussion.
+sentence-transformers>=3.0.0
+
+# --- Observability ---
+structlog>=24.4.0
+# Stage 7: minimal span export (console exporter) around agent runs and tool
+# executions, gated behind OTEL_ENABLED.
+opentelemetry-api>=1.29.0
+opentelemetry-sdk>=1.29.0
+
+# --- Eval harness (Stage 8) ---
+PyYAML>=6.0
+
+# --- Utilities ---
+python-dotenv>=1.0.1
+
+# --- Testing ---
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+aiosqlite>=0.20.0  # test-only fallback driver; real runs use Postgres/asyncpg

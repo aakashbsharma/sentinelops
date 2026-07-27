@@ -1,0 +1,131 @@
+services:
+  postgres:
+    # pgvector/pgvector = official Postgres 16 image + the pgvector extension
+    # baked in (plain postgres:16 can't CREATE EXTENSION vector).
+    image: pgvector/pgvector:pg16
+    container_name: sentinelops-postgres
+    environment:
+      POSTGRES_USER: sentinelops
+      POSTGRES_PASSWORD: sentinelops
+      POSTGRES_DB: sentinelops
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinelops -d sentinelops"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: sentinelops-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # --- MCP tool servers (Stage 6) -------------------------------------- #
+  # Each is an independently deployable uvicorn process speaking MCP
+  # streamable HTTP on /mcp, with a plain-HTTP /health for these checks.
+
+  logs-metrics-mcp:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.logs-metrics-mcp
+    container_name: sentinelops-logs-metrics-mcp
+    environment:
+      # The simulated world's state (which incident evidence exists).
+      SIMULATED_SCENARIO: ${SIMULATED_SCENARIO:-connection_pool_exhaustion}
+    ports:
+      - "8101:8101"
+
+  infra-mcp:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.infra-mcp
+    container_name: sentinelops-infra-mcp
+    ports:
+      - "8102:8102"
+
+  runbook-mcp:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.runbook-mcp
+    container_name: sentinelops-runbook-mcp
+    environment:
+      # Queries SemanticMemoryStore -> needs the database (hence depends_on).
+      DATABASE_URL: postgresql+asyncpg://sentinelops:sentinelops@postgres:5432/sentinelops
+    ports:
+      - "8103:8103"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # --- Application ------------------------------------------------------ #
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app
+    container_name: sentinelops-app
+    environment:
+      DATABASE_URL: postgresql+asyncpg://sentinelops:sentinelops@postgres:5432/sentinelops
+      REDIS_URL: redis://redis:6379/0
+      USE_MCP_TOOLS: "true"
+      LOGS_METRICS_MCP_URL: http://logs-metrics-mcp:8101/mcp
+      INFRA_MCP_URL: http://infra-mcp:8102/mcp
+      RUNBOOK_MCP_URL: http://runbook-mcp:8103/mcp
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports:
+      - "8000:8000"
+    # Wait for the tool servers to be HEALTHY (not merely started): the app
+    # connects + list_tools() during its startup lifespan, and starting
+    # before they're ready would needlessly degrade those tools to stubs.
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      logs-metrics-mcp:
+        condition: service_healthy
+      infra-mcp:
+        condition: service_healthy
+      runbook-mcp:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app
+    container_name: sentinelops-worker
+    command: celery -A app.core.celery_app.celery_app worker --loglevel=INFO
+    environment:
+      DATABASE_URL: postgresql+asyncpg://sentinelops:sentinelops@postgres:5432/sentinelops
+      REDIS_URL: redis://redis:6379/0
+      USE_MCP_TOOLS: "true"
+      LOGS_METRICS_MCP_URL: http://logs-metrics-mcp:8101/mcp
+      INFRA_MCP_URL: http://infra-mcp:8102/mcp
+      RUNBOOK_MCP_URL: http://runbook-mcp:8103/mcp
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      logs-metrics-mcp:
+        condition: service_healthy
+      infra-mcp:
+        condition: service_healthy
+      runbook-mcp:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redisdata:

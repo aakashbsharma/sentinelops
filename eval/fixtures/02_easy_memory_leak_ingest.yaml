@@ -1,0 +1,30 @@
+# EASY / unambiguous. Container memory alert + OOM kills in the simulated
+# logs point straight at a leak.
+id: easy_memory_leak_ingest
+title: "ingest-worker: container memory at 94% of limit, pods OOMKilled"
+description: >
+  Kubernetes alert: ingest-worker pods restarting repeatedly with OOMKilled.
+  Memory usage grows steadily after each restart until the 2Gi limit is hit.
+  Event ingestion is lagging but not stopped (queue absorbing the gap).
+source: eval
+raw_payload:
+  scenario: memory_leak
+  alert_name: ContainerMemoryNearLimit
+  service: ingest-worker
+  environment: production
+  fired_at: "2026-07-15T09:41:00Z"
+  metric_snapshot:
+    memory_pct_of_limit: 94
+    restarts_last_hour: 4
+    queue_lag_seconds: 340
+ground_truth:
+  expected_severity: high
+  expected_category: resource_exhaustion
+  expected_root_cause_keywords:
+    - memory leak
+    - memory grows steadily until the container limit
+    - OOMKilled restarts
+    - unreleased memory in the worker process
+  expected_risk_level: medium
+  should_require_approval: true
+  is_actually_critical: false

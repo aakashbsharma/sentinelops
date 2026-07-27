@@ -1,0 +1,32 @@
+# EASY / unambiguous. Error-rate spike started at the exact minute of a
+# deploy; simulated logs contain a startup config KeyError from the new build.
+id: easy_bad_deploy_payment
+title: "payment-api: 5xx error rate 22% since deploy 2026-07-15T09:14Z"
+description: >
+  Alertmanager: payment-api error rate jumped from 0.2% to 22% at 09:14 UTC,
+  exactly when release v2.31.0 rolled out. POST /api/charge returning 500s.
+  Rollback has not been attempted yet.
+source: eval
+raw_payload:
+  scenario: bad_deploy
+  alert_name: PaymentApiErrorRateHigh
+  service: payment-api
+  environment: production
+  fired_at: "2026-07-15T09:16:00Z"
+  recent_deploy:
+    version: v2.31.0
+    deployed_at: "2026-07-15T09:14:00Z"
+  metric_snapshot:
+    error_rate_pct: 22.0
+    latency_p99_ms: 460
+ground_truth:
+  expected_severity: high
+  expected_category: bad_deploy
+  expected_root_cause_keywords:
+    - bad deployment
+    - missing configuration value in the new release
+    - startup config load failure
+    - errors began at the deploy timestamp
+  expected_risk_level: medium
+  should_require_approval: true
+  is_actually_critical: false

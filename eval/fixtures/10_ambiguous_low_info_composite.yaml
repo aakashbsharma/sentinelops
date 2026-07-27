@@ -1,0 +1,31 @@
+# AMBIGUOUS / low information. A composite health check names no failing
+# component; the agents should report needs_more_data and use tools to find
+# the memory-leaking worker behind it (this exercises the retry loop).
+id: ambiguous_low_info_composite
+title: "payments-suite: composite health check degraded"
+description: >
+  Synthetic composite check "payments-suite" transitioned to DEGRADED.
+  The check aggregates several backends; the alert does not say which
+  component failed. Investigate the payment-worker fleet first per runbook.
+source: eval
+raw_payload:
+  scenario: memory_leak
+  alert_name: PaymentsSuiteCompositeDegraded
+  service: payment-worker
+  environment: production
+  fired_at: "2026-07-15T22:37:00Z"
+  composite_members:
+    - payment-api
+    - payment-worker
+    - ledger-db
+ground_truth:
+  expected_severity: medium
+  expected_category: resource_exhaustion
+  expected_root_cause_keywords:
+    - worker memory leak
+    - memory usage climbing toward the container limit
+    - OOM kills degrading the composite check
+    - garbage collection pauses in the worker
+  expected_risk_level: medium
+  should_require_approval: true
+  is_actually_critical: false

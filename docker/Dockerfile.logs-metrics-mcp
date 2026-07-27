@@ -1,0 +1,16 @@
+# Logs & metrics MCP server — self-contained simulator, no app/ imports,
+# so it only needs the MCP SDK + uvicorn (deliberately NOT requirements.txt:
+# an independently deployable service carries only its own dependencies).
+FROM python:3.12-slim
+
+WORKDIR /srv
+RUN pip install --no-cache-dir "mcp>=1.28,<2" "uvicorn[standard]>=0.32.0"
+
+COPY mcp_servers/__init__.py mcp_servers/__init__.py
+COPY mcp_servers/logs_metrics_server mcp_servers/logs_metrics_server
+
+EXPOSE 8101
+HEALTHCHECK --interval=5s --timeout=5s --retries=10 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8101/health')"
+
+CMD ["uvicorn", "mcp_servers.logs_metrics_server.server:app", "--host", "0.0.0.0", "--port", "8101"]

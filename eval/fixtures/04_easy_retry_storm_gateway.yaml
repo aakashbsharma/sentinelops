@@ -1,0 +1,30 @@
+# EASY / unambiguous. CPU pegged + logs full of retry-budget exhaustion
+# against a 503ing downstream — the classic self-inflicted retry storm.
+id: easy_retry_storm_gateway
+title: "processor-gateway: CPU throttling at 97%, downstream 503 retries flooding"
+description: >
+  Datadog monitor: processor-gateway CPU utilization sustained at 97% with
+  kernel throttling for 5+ minutes. Request latency climbing. Logs show heavy
+  retry activity against the card-processor dependency, which is returning 503s.
+source: eval
+raw_payload:
+  scenario: retry_storm
+  alert_name: ProcessorGatewayCpuThrottling
+  service: processor-gateway
+  environment: production
+  fired_at: "2026-07-15T16:20:00Z"
+  metric_snapshot:
+    cpu_pct: 97
+    latency_p99_ms: 2600
+    downstream_503_rate_pct: 41
+ground_truth:
+  expected_severity: high
+  expected_category: capacity
+  expected_root_cause_keywords:
+    - retry storm amplifying load
+    - downstream dependency returning 503
+    - retries exhausting the retry budget
+    - CPU saturation caused by aggressive retries
+  expected_risk_level: medium
+  should_require_approval: true
+  is_actually_critical: false

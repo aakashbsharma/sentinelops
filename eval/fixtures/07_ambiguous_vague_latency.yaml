@@ -1,0 +1,30 @@
+# AMBIGUOUS. The alert only says "latency elevated" with unremarkable
+# numbers — nothing points at the database. The agents must actually query
+# logs/metrics to discover the pool-exhaustion evidence underneath.
+id: ambiguous_vague_latency
+title: "orders-api: p99 latency elevated"
+description: >
+  Generic latency monitor fired for orders-api. p99 above the 800ms
+  threshold for 10 minutes. No error rate alert, no deploys today, no
+  customer complaints yet.
+source: eval
+raw_payload:
+  scenario: connection_pool_exhaustion
+  alert_name: OrdersApiLatencyElevated
+  service: orders-api
+  environment: production
+  fired_at: "2026-07-15T13:30:00Z"
+  metric_snapshot:
+    latency_p99_ms: 1150
+    error_rate_pct: 1.9
+ground_truth:
+  expected_severity: medium
+  expected_category: database
+  expected_root_cause_keywords:
+    - database connection pool saturated
+    - requests queueing for connections
+    - connection acquisition timeouts
+    - slow queries holding connections
+  expected_risk_level: medium
+  should_require_approval: true
+  is_actually_critical: false

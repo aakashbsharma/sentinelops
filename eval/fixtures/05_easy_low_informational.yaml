@@ -1,0 +1,30 @@
+# EASY / low severity. A single transient blip that self-recovered before the
+# on-call even looked; the simulated world is healthy (no scenario). The
+# correct behavior is to classify low and NOT propose invasive remediation.
+id: easy_low_informational
+title: "notifications-service: brief latency blip, self-recovered"
+description: >
+  Grafana alert fired for notifications-service p99 latency above 500ms,
+  then auto-resolved after 90 seconds. No error rate change, no customer
+  reports. Alert is informational; service currently healthy.
+source: eval
+raw_payload:
+  alert_name: NotificationsLatencyBlip
+  service: notifications-service
+  environment: production
+  fired_at: "2026-07-15T11:05:00Z"
+  auto_resolved_at: "2026-07-15T11:06:30Z"
+  metric_snapshot:
+    latency_p99_ms: 190
+    error_rate_pct: 0.2
+ground_truth:
+  expected_severity: low
+  expected_category: monitoring
+  expected_root_cause_keywords:
+    - transient latency blip
+    - self-recovered without intervention
+    - no ongoing degradation
+    - metrics back to healthy baseline
+  expected_risk_level: low
+  should_require_approval: false
+  is_actually_critical: false

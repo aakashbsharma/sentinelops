@@ -1,0 +1,30 @@
+# AMBIGUOUS / false alarm. The alert sounds scary but the simulated world is
+# healthy (no scenario): logs and metrics show a normal baseline. The honest
+# conclusion is "no incident found" — inventing a root cause is a miss.
+id: ambiguous_false_alarm
+title: "search-api: error budget burn rate critical (14x)"
+description: >
+  SLO alert: search-api availability error budget burning at 14x rate over
+  the 5-minute window. Short windows are noisy; the 1-hour window has not
+  fired. No deploys, no infra changes reported.
+source: eval
+raw_payload:
+  alert_name: SearchApiErrorBudgetBurn
+  service: search-api
+  environment: production
+  fired_at: "2026-07-15T18:44:00Z"
+  slo_window: 5m
+  metric_snapshot:
+    error_rate_pct: 0.2
+    latency_p99_ms: 185
+ground_truth:
+  expected_severity: low
+  expected_category: monitoring
+  expected_root_cause_keywords:
+    - false alarm from a noisy short alerting window
+    - no evidence of degradation in logs or metrics
+    - service operating at healthy baseline
+    - alert threshold too sensitive
+  expected_risk_level: low
+  should_require_approval: false
+  is_actually_critical: false
