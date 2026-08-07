@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: Literal["dev", "staging", "prod"] = "dev"
     LOG_LEVEL: str = "INFO"
     ANTHROPIC_API_KEY: str | None = None
-
+    GROQ_API_KEY: str = ""
     # Agent guardrails — enforced by the loop engine from Stage 2 onward.
     MAX_AGENT_ITERATIONS: int = 8
     AGENT_TOKEN_BUDGET: int = 50_000

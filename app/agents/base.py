@@ -323,9 +323,20 @@ class AgentLoop(ABC):
         app/agents/llm.py). Unit tests never reach this — they inject
         scripted _plan_step/_reflect_step results instead."""
         from app.agents.llm import call_anthropic, get_anthropic_client
+        from app.agents.groq_client import call_groq, get_groq_client
 
-        client = get_anthropic_client()  # raises LLMConfigurationError if no key
-        return await call_anthropic(
+        #client = get_anthropic_client()  # raises LLMConfigurationError if no key
+        # return await call_anthropic(
+        #     client,
+        #     model=self.config.model,
+        #     system=system,
+        #     messages=messages,
+        #     tools=tools,
+        #     max_tokens=max_tokens,
+        # )
+
+        client = get_groq_client()
+        return await call_groq(
             client,
             model=self.config.model,
             system=system,
