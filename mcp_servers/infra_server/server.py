@@ -14,13 +14,30 @@ import logging
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from pydantic import Field
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 logger = logging.getLogger("infra_mcp")
 
-mcp = FastMCP("sentinelops-infra", stateless_http=True, json_response=True)
+mcp = FastMCP(
+    "sentinelops-infra",
+    stateless_http=True,
+    json_response=True,
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=[
+            "localhost:*",
+            "127.0.0.1:*",
+            "infra-mcp:*",
+        ],
+        allowed_origins=[
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+        ],
+    ),
+)
 
 
 @mcp.tool()

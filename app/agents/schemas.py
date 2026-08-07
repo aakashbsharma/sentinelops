@@ -80,7 +80,7 @@ class LoopConfig(BaseModel):
     max_iterations: int = 8
     token_budget: int = 50_000
     # Placeholder model id — the real Anthropic call is wired in a later task.
-    model: str = "claude-sonnet-4-6"
+    model: str = "llama-3.3-70b-versatile"
     reflect_every_step: bool = True
     tool_timeout_s: float = 30.0
 
