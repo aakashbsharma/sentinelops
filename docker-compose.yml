@@ -83,6 +83,7 @@ services:
       INFRA_MCP_URL: http://infra-mcp:8102/mcp
       RUNBOOK_MCP_URL: http://runbook-mcp:8103/mcp
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
     ports:
       - "8000:8000"
     # Wait for the tool servers to be HEALTHY (not merely started): the app
@@ -114,6 +115,7 @@ services:
       INFRA_MCP_URL: http://infra-mcp:8102/mcp
       RUNBOOK_MCP_URL: http://runbook-mcp:8103/mcp
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy
