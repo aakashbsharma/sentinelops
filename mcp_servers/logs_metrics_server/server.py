@@ -22,12 +22,29 @@ import os
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from mcp_servers.logs_metrics_server.generators import generate_logs, generate_metrics
 
-mcp = FastMCP("sentinelops-logs-metrics", stateless_http=True, json_response=True)
+mcp = FastMCP(
+    "sentinelops-logs-metrics",
+    stateless_http=True,
+    json_response=True,
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=[
+            "localhost:*",
+            "127.0.0.1:*",
+            "logs-metrics-mcp:*",
+        ],
+        allowed_origins=[
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+        ],
+    ),
+)
 
 
 def _scenario() -> str | None:

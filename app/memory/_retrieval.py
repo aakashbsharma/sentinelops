@@ -15,7 +15,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.memory.embeddings import cosine_similarity
 from app.models.memory import MemoryRecord
-
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import bindparam
 
 def _vector_literal(embedding: list[float]) -> str:
     """pgvector's textual input format: '[0.1,0.2,...]'."""
@@ -56,8 +57,14 @@ async def _search_pgvector(
     min_similarity: float,
 ) -> list[tuple[MemoryRecord, float]]:
     # cosine DISTANCE (0 = identical, 2 = opposite); similarity = 1 - distance.
+    query_vector = bindparam(
+        "query_embedding",
+        value=query_embedding,
+        type_=Vector(len(query_embedding)),
+    )
+
     distance = MemoryRecord.embedding.op("<=>", return_type=Float)(
-        _vector_literal(query_embedding)
+        query_vector
     )
     max_distance = 1.0 - min_similarity
 

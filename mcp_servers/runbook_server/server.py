@@ -18,6 +18,7 @@ transport comment there.
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from pydantic import Field
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from starlette.requests import Request
@@ -27,8 +28,23 @@ from app.core.config import get_settings
 from app.memory.embeddings import LocalEmbeddingProvider
 from app.memory.semantic import SemanticMemoryStore
 
-mcp = FastMCP("sentinelops-runbooks", stateless_http=True, json_response=True)
-
+mcp = FastMCP(
+    "sentinelops-runbook",
+    stateless_http=True,
+    json_response=True,
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=[
+            "localhost:*",
+            "127.0.0.1:*",
+            "runbook-mcp:*",
+        ],
+        allowed_origins=[
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+        ],
+    ),
+)
 # This server is its own process: own engine/pool, never shared with the API.
 # Created lazily so importing this module (e.g. to inspect the ASGI app)
 # doesn't require a reachable database.

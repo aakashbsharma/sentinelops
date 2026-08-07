@@ -32,6 +32,7 @@ httpx>=0.28.0
 # --- LLM ---
 anthropic>=0.40.0
 tenacity>=8.5.0
+openai==2.53.0
 
 # --- Memory / embeddings ---
 pgvector>=0.3.0

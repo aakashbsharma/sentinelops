@@ -95,13 +95,9 @@ class _MCPServerConnection:
             from mcp.client.streamable_http import streamable_http_client
 
             async with AsyncExitStack() as stack:
-                http_client = await stack.enter_async_context(
-                    httpx.AsyncClient(
-                        timeout=httpx.Timeout(60.0, connect=self.connect_timeout_s)
-                    )
-                )
+                # async with AsyncExitStack() as stack:
                 read, write, _ = await stack.enter_async_context(
-                    streamable_http_client(self.url, http_client=http_client)
+                    streamable_http_client(self.url)
                 )
                 session = await stack.enter_async_context(ClientSession(read, write))
                 await session.initialize()

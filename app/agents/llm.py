@@ -10,6 +10,7 @@ visible immediately.
 from functools import lru_cache
 from typing import Any
 
+from openai import OpenAI
 import anthropic
 from anthropic import AsyncAnthropic
 from tenacity import (
